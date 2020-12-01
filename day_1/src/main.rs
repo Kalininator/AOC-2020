@@ -8,15 +8,10 @@ fn read_file(path: &str) -> Vec<i32> {
     let file = fs::File::open(path).expect("Failed to read file");
     let br = BufReader::new(file);
 
-    let mut v = Vec::new();
-
-    for line in br.lines() {
-        let line = line.expect("Failed to read line");
-        let s: i32 = line.parse().expect("Failed to parse");
-        v.push(s);
-    }
-
-    return v;
+    br.lines()
+        .map(|l| l.expect("Failed to read line"))
+        .map(|string| string.parse::<i32>().expect("failed to parse"))
+        .collect()
 }
 
 fn main() {
