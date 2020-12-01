@@ -21,14 +21,14 @@ fn main() {
     let arr = read_file(filename);
     let len = arr.len();
 
-    'i: for i in 0..len {
+    'outer: for i in 0..len {
         for j in (i + 1)..len {
             if arr[i] + arr[j] <= 2020 {
                 for k in (i + 2)..len {
                     if arr[i] + arr[j] + arr[k] == 2020 {
                         println!("values: {} {} {}", arr[i], arr[j], arr[k]);
                         println!("end result: {}", arr[i] * arr[j] * arr[k]);
-                        break 'i;
+                        break 'outer;
                     }
                 }
             }
