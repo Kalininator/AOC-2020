@@ -23,12 +23,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
 
-    // let contents = fs::read_to_string(filename).expect("Failed to read file");
-
     let arr = read_file(filename);
-    // for val in arr {
-    //     println!("{}", val)
-    // }
 
     'outer: for i in 0..arr.len() {
         for j in (i + 1)..arr.len() {
