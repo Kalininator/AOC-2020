@@ -9,8 +9,11 @@ fn read_file(path: &str) -> Vec<i32> {
     let br = BufReader::new(file);
 
     br.lines()
-        .map(|l| l.expect("Failed to read line"))
-        .map(|string| string.parse::<i32>().expect("failed to parse"))
+        .map(|l| {
+            l.expect("Failed to get line.")
+                .parse::<i32>()
+                .expect("Failed to parse line value to int.")
+        })
         .collect()
 }
 
