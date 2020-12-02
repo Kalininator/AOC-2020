@@ -2,22 +2,41 @@ use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 
-fn check_line(line: &str) -> bool {
+struct Input {
+    first_number: i32,
+    second_number: i32,
+    char_to_check: char,
+    password: String,
+}
+
+fn extract_input(line: &str) -> Input {
     let without_colon = line.replace(":", "");
     let split: Vec<&str> = without_colon.split(' ').collect();
 
     let range = split[0];
     let range_values: Vec<&str> = range.split('-').collect();
-    let min_count: usize = range_values[0].parse().expect("Invalid min range");
-    let max_count: usize = range_values[1].parse().expect("asdfasf");
-    let char_to_check = split[1];
+    let first_number = range_values[0].parse().expect("Invalid min range");
+    let second_number = range_values[1].parse().expect("asdfasf");
+    let char_to_check = split[1].chars().collect::<Vec<char>>()[0];
     let password = split[2];
-    let password_char_count = password
-        .chars()
-        .filter(|c| c.to_string() == char_to_check)
-        .count();
+    return Input {
+        first_number: first_number,
+        second_number: second_number,
+        char_to_check: char_to_check,
+        password: String::from(password),
+    };
+}
 
-    return password_char_count >= min_count && password_char_count <= max_count;
+fn count_chars(string: String, character: char) -> usize {
+    return string.chars().filter(|c| c == &character).count();
+}
+
+fn check_line_task_1(line: &str) -> bool {
+    let input = extract_input(line);
+    let password_char_count = count_chars(input.password, input.char_to_check);
+
+    return password_char_count >= input.first_number as usize
+        && password_char_count <= input.second_number as usize;
 }
 
 fn check_line_2(line: &str) -> bool {
@@ -57,7 +76,7 @@ fn main() {
     let mut count_part_2: i32 = 0;
 
     for line in lines {
-        if check_line(&line) {
+        if check_line_task_1(&line) {
             count_part_1 = count_part_1 + 1;
         }
         if check_line_2(&line) {
@@ -71,8 +90,29 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn it_works() {
-        assert_eq!(check_line_2("1-3 a: abcde"), true);
+    fn extract_input_works() {
+        let line = "4-7 z: zzzfzlzzz";
+        let parsed_input = extract_input(line);
+        assert_eq!(parsed_input.first_number, 4);
+        assert_eq!(parsed_input.second_number, 7);
+        assert_eq!(parsed_input.char_to_check, 'z');
+        assert_eq!(parsed_input.password, "zzzfzlzzz");
+    }
+
+    #[test]
+    fn task_1_works() {
+        let correct_line = "1-3 a: abcde";
+        assert_eq!(check_line_task_1(correct_line), true);
+
+        let incorrect_line = "1-3 b: cdefg";
+        assert_eq!(check_line_task_1(incorrect_line), false);
+    }
+
+    #[test]
+    fn count_chars_works() {
+        let string = String::from("ababa");
+        assert_eq!(count_chars(string, 'a'), 3);
     }
 }
