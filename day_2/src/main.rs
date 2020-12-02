@@ -15,9 +15,16 @@ fn extract_input(line: &str) -> Input {
 
     let range = split[0];
     let range_values: Vec<&str> = range.split('-').collect();
-    let first_number = range_values[0].parse().expect("Invalid min range");
-    let second_number = range_values[1].parse().expect("asdfasf");
-    let char_to_check = split[1].chars().collect::<Vec<char>>()[0];
+    let first_number = range_values[0]
+        .parse()
+        .expect("Could not parse first number");
+    let second_number = range_values[1]
+        .parse()
+        .expect("Could not parse second number");
+    let char_to_check = split[1]
+        .chars()
+        .next()
+        .expect("COuld not find char to check.");
     let password = split[2];
     return Input {
         first_number: first_number,
