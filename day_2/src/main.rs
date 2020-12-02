@@ -39,22 +39,23 @@ fn check_line_task_1(line: &str) -> bool {
         && password_char_count <= input.second_number as usize;
 }
 
+fn has_char_at_index(text: &String, character: char, position: usize) -> bool {
+    return text.len() > position && text.chars().collect::<Vec<char>>()[position] == character;
+}
+
 fn check_line_task_2(line: &str) -> bool {
-    let without_colon = line.replace(":", "");
-    let split: Vec<&str> = without_colon.split(' ').collect();
+    let input = extract_input(line);
 
-    let range = split[0];
-    let range_values: Vec<&str> = range.split('-').collect();
-    let position_1: usize = range_values[0].parse().expect("Invalid min range");
-    let position_2: usize = range_values[1].parse().expect("asdfasf");
-    let char_to_check = split[1];
-    let password_chars: Vec<char> = split[2].chars().collect();
-
-    let a_valid: bool = password_chars.len() > position_1 - 1
-        && password_chars[position_1 - 1].to_string() == char_to_check;
-
-    let b_valid: bool = password_chars.len() > position_2 - 1
-        && password_chars[position_2 - 1].to_string() == char_to_check;
+    let a_valid = has_char_at_index(
+        &input.password,
+        input.char_to_check,
+        input.first_number as usize - 1,
+    );
+    let b_valid = has_char_at_index(
+        &input.password,
+        input.char_to_check,
+        input.second_number as usize - 1,
+    );
 
     return a_valid ^ b_valid;
 }
@@ -126,5 +127,11 @@ mod tests {
 
         let incorrect_string_xor = "2-9 c: ccccccccc";
         assert_eq!(check_line_task_2(incorrect_string_xor), false);
+    }
+
+    #[test]
+    fn check_char_works() {
+        assert_eq!(has_char_at_index(&String::from("abc"), 'b', 1), true);
+        assert_eq!(has_char_at_index(&String::from("abc"), 'b', 4), false);
     }
 }
