@@ -39,7 +39,7 @@ fn check_line_task_1(line: &str) -> bool {
         && password_char_count <= input.second_number as usize;
 }
 
-fn check_line_2(line: &str) -> bool {
+fn check_line_task_2(line: &str) -> bool {
     let without_colon = line.replace(":", "");
     let split: Vec<&str> = without_colon.split(' ').collect();
 
@@ -79,7 +79,7 @@ fn main() {
         if check_line_task_1(&line) {
             count_part_1 = count_part_1 + 1;
         }
-        if check_line_2(&line) {
+        if check_line_task_2(&line) {
             count_part_2 = count_part_2 + 1;
         }
     }
@@ -114,5 +114,17 @@ mod tests {
     fn count_chars_works() {
         let string = String::from("ababa");
         assert_eq!(count_chars(string, 'a'), 3);
+    }
+
+    #[test]
+    fn task_2_works() {
+        let correct_string = "1-3 a: abcde";
+        assert_eq!(check_line_task_2(correct_string), true);
+
+        let incorrect_string = "1-3 b: cdefg";
+        assert_eq!(check_line_task_2(incorrect_string), false);
+
+        let incorrect_string_xor = "2-9 c: ccccccccc";
+        assert_eq!(check_line_task_2(incorrect_string_xor), false);
     }
 }
