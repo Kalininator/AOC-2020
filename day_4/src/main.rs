@@ -1,15 +1,9 @@
+use regex::Regex;
 use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 
-fn print_lines(lines: &Vec<String>) {
-    for line in lines.iter() {
-        println!("{}", line);
-    }
-}
-
 fn file_lines_to_passports(file_lines: Vec<String>) -> Vec<String> {
-    // return file_lines.into_iter().filter(|l| l != "").collect();
     let mut result = Vec::<String>::new();
     let mut buffer = Vec::<String>::new();
     for line in file_lines.into_iter() {
@@ -25,13 +19,113 @@ fn file_lines_to_passports(file_lines: Vec<String>) -> Vec<String> {
     return result;
 }
 
-fn get_passport_line_fields(line: String) -> Vec<String> {
+fn check_field(field: String, value: String) -> bool {
+    if field == "cid" {
+        return true;
+    }
+
+    if field == "byr" {
+        let val = value.parse::<i32>().expect("failed parse number");
+        if val <= 2002 && val >= 1920 {
+            return true;
+        }
+    }
+
+    if field == "iyr" {
+        let val = value.parse::<i32>().expect("failed parse number");
+        if val <= 2020 && val >= 2010 {
+            return true;
+        }
+    }
+
+    if field == "eyr" {
+        let val = value.parse::<i32>().expect("failed parse number");
+        if val <= 2030 && val >= 2020 {
+            return true;
+        }
+    }
+
+    if field == "hgt" {
+        if value.ends_with("cm") {
+            let num = value[..value.len() - 2]
+                .parse::<i32>()
+                .expect("failed to get height number");
+            if num >= 150 && num <= 193 {
+                return true;
+            }
+        }
+
+        if value.ends_with("in") {
+            let num = value[..value.len() - 2]
+                .parse::<i32>()
+                .expect("failed to get height number");
+            if num >= 59 && num <= 76 {
+                return true;
+            }
+        }
+    }
+
+    if field == "hcl" {
+        let regex = Regex::new(r"^#([0-9a-f]){6}$").unwrap();
+        if regex.is_match(&*value) {
+            return true;
+        }
+    }
+
+    if field == "ecl" {
+        let regex = Regex::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
+        if regex.is_match(&*value) {
+            return true;
+        }
+    }
+
+    if field == "pid" {
+        let regex = Regex::new(r"^\d{9}$").unwrap();
+        if regex.is_match(&*value) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+fn get_passport_field_keys(line: &String) -> Vec<String> {
     let result = line
         .split(" ")
         .map(|i| return String::from(i.split(":").collect::<Vec<&str>>()[0]))
         .collect();
 
     return result;
+}
+
+fn is_passport_valid_basic(passport: &String) -> bool {
+    let required_fields = vec!["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+
+    let passport_fields = get_passport_field_keys(passport);
+    for field in &required_fields {
+        if !passport_fields.iter().any(|f| f == field) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn is_passport_valid_advanced(passport: &String) -> bool {
+    if !is_passport_valid_basic(passport) {
+        return false;
+    }
+
+    let is_valid = passport
+        .split(" ")
+        .map(|f| {
+            let split: Vec<&str> = f.split(":").collect::<Vec<&str>>();
+            let res = check_field(split[0].to_string(), split[1].to_string());
+            // println!("{}:{} - {}", split[0], split[1], res);
+            return res;
+        })
+        .collect::<Vec<bool>>();
+
+    return !is_valid.iter().any(|f| f == &false);
 }
 
 fn main() {
@@ -46,24 +140,47 @@ fn main() {
         .collect();
 
     let passport_lines = file_lines_to_passports(lines);
-    let count = passport_lines.len();
-    let passport_fields: Vec<Vec<String>> = passport_lines
+
+    let checked_passports: Vec<bool> = passport_lines
         .into_iter()
-        .map(|line| get_passport_line_fields(line))
+        .map(|p| is_passport_valid_advanced(&p))
         .collect();
 
-    let required_fields = vec!["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+    let valid_passports = checked_passports.into_iter().filter(|&p| p == true).count();
 
-    let mut invalid_count = 0;
+    println!("Valid: {}", valid_passports);
+}
 
-    'top: for passport in passport_fields {
-        for field in &required_fields {
-            if !passport.iter().any(|f| f == field) {
-                invalid_count += 1;
-                continue 'top;
-            }
-        }
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn check_field_works() {
+        assert_eq!(
+            check_field(String::from("byr"), String::from("1900")),
+            false
+        );
+        assert_eq!(check_field(String::from("byr"), String::from("1930")), true);
+        assert_eq!(
+            check_field(String::from("byr"), String::from("2020")),
+            false
+        );
+
+        assert_eq!(
+            check_field(String::from("hcl"), String::from("#afd123")),
+            true
+        );
     }
 
-    println!("Valid: {}", count - invalid_count);
+    #[test]
+    fn invalid_passports() {
+        assert_eq!(
+            is_passport_valid_advanced(&String::from(
+                "hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926 eyr:1972 cid:100"
+            )),
+            false
+        );
+    }
 }
