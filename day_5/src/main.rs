@@ -1,8 +1,7 @@
-use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 
-fn parse_string(string: &String, truthy_char: char, falsy_char: char) -> Vec<bool> {
+fn parse_string(string: &String, truthy_char: char, _falsy_char: char) -> Vec<bool> {
     return string
         .chars()
         .map(|c| {
@@ -20,12 +19,9 @@ fn binary_find(max_num: usize, instructions: Vec<bool>) -> usize {
 
     for instruction in instructions.iter() {
         let middle = lower + ((upper + 1) - lower) / 2;
-        println!("{} {} {}", lower, middle, upper);
         if instruction == &true {
-            println!("up");
             lower = middle;
         } else {
-            println!("down");
             upper = middle;
         }
     }
@@ -38,7 +34,6 @@ fn get_seat_id(input: &String) -> usize {
     let columns = &input[7..10];
     let row = binary_find(127, parse_string(&String::from(rows), 'B', 'F'));
     let column = binary_find(7, parse_string(&String::from(columns), 'R', 'L'));
-    println!("{} {}", row, column);
     return (row * 8) + column;
 }
 
