@@ -37,6 +37,14 @@ fn get_seat_id(input: &String) -> usize {
     return (row * 8) + column;
 }
 
+fn get_seat(input: &String) -> (usize, usize) {
+    let rows = &input[..7];
+    let columns = &input[7..10];
+    let row = binary_find(127, parse_string(&String::from(rows), 'B', 'F'));
+    let column = binary_find(7, parse_string(&String::from(columns), 'R', 'L'));
+    return (row, column);
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let filename = &args[1];
@@ -48,6 +56,32 @@ fn main() {
     let ids: Vec<usize> = lines.iter().map(|l| get_seat_id(&l)).collect();
     let max_id = ids.iter().max().expect("Failed to get max");
     println!("Part 1 result: {}", max_id);
+
+    let seats: Vec<(usize, usize)> = lines.iter().map(|l| get_seat(l)).collect();
+    for row in 1..127 {
+        for column in 0..8 {
+            if !seats.iter().any(|&val| val == (row, column)) {
+                println!("Didnt find seat at {} {}", row, column);
+            }
+        }
+    }
+    // for seat in &seats {
+    //     'outer: for row in 1..127 {
+    //         for column in 0..8 {
+    //             let mut found = false;
+    //             let (a, b) = seat;
+    //             println!("{},{}", a, b);
+    //             if a == &(row as usize) && b == &(column as usize) {
+    //                 found = true;
+    //             }
+    //             println!("trying {} {}", row, column);
+    //             if found == false {
+    //                 println!("{}", (row * 8) + column);
+    //                 break 'outer;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 #[cfg(test)]
