@@ -19,74 +19,64 @@ fn file_lines_to_passports(file_lines: Vec<String>) -> Vec<String> {
     return result;
 }
 
-fn check_field(field: String, value: String) -> bool {
-    if field == "cid" {
-        return true;
-    }
-
-    if field == "byr" {
-        let val = value.parse::<i32>().expect("failed parse number");
-        if val <= 2002 && val >= 1920 {
-            return true;
+fn check_field(field: &str, value: String) -> bool {
+    return match field {
+        "cid" => true,
+        "byr" => {
+            let val = value.parse::<i32>().expect("failed parse number");
+            val <= 2002 && val >= 1920
         }
-    }
-
-    if field == "iyr" {
-        let val = value.parse::<i32>().expect("failed parse number");
-        if val <= 2020 && val >= 2010 {
-            return true;
+        "iyr" => {
+            let val = value.parse::<i32>().expect("failed parse number");
+            val <= 2020 && val >= 2010
         }
-    }
-
-    if field == "eyr" {
-        let val = value.parse::<i32>().expect("failed parse number");
-        if val <= 2030 && val >= 2020 {
-            return true;
+        "eyr" => {
+            let val = value.parse::<i32>().expect("failed parse number");
+            val <= 2030 && val >= 2020
         }
-    }
+        "hgt" => {
+            if value.ends_with("cm") {
+                let num = value[..value.len() - 2]
+                    .parse::<i32>()
+                    .expect("failed to get height number");
+                if num >= 150 && num <= 193 {
+                    return true;
+                }
+            }
 
-    if field == "hgt" {
-        if value.ends_with("cm") {
-            let num = value[..value.len() - 2]
-                .parse::<i32>()
-                .expect("failed to get height number");
-            if num >= 150 && num <= 193 {
+            if value.ends_with("in") {
+                let num = value[..value.len() - 2]
+                    .parse::<i32>()
+                    .expect("failed to get height number");
+                if num >= 59 && num <= 76 {
+                    return true;
+                }
+            }
+            false
+        }
+        "hcl" => {
+            let regex = Regex::new(r"^#([0-9a-f]){6}$").unwrap();
+            if regex.is_match(&*value) {
                 return true;
             }
+            false
         }
-
-        if value.ends_with("in") {
-            let num = value[..value.len() - 2]
-                .parse::<i32>()
-                .expect("failed to get height number");
-            if num >= 59 && num <= 76 {
+        "ecl" => {
+            let regex = Regex::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
+            if regex.is_match(&*value) {
                 return true;
             }
+            false
         }
-    }
-
-    if field == "hcl" {
-        let regex = Regex::new(r"^#([0-9a-f]){6}$").unwrap();
-        if regex.is_match(&*value) {
-            return true;
+        "pid" => {
+            let regex = Regex::new(r"^\d{9}$").unwrap();
+            if regex.is_match(&*value) {
+                return true;
+            }
+            false
         }
-    }
-
-    if field == "ecl" {
-        let regex = Regex::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
-        if regex.is_match(&*value) {
-            return true;
-        }
-    }
-
-    if field == "pid" {
-        let regex = Regex::new(r"^\d{9}$").unwrap();
-        if regex.is_match(&*value) {
-            return true;
-        }
-    }
-
-    return false;
+        _ => false,
+    };
 }
 
 fn get_passport_field_keys(line: &String) -> Vec<String> {
@@ -119,7 +109,7 @@ fn is_passport_valid_advanced(passport: &String) -> bool {
         .split(" ")
         .map(|f| {
             let split: Vec<&str> = f.split(":").collect::<Vec<&str>>();
-            let res = check_field(split[0].to_string(), split[1].to_string());
+            let res = check_field(split[0], split[1].to_string());
             // println!("{}:{} - {}", split[0], split[1], res);
             return res;
         })
@@ -158,20 +148,11 @@ mod tests {
 
     #[test]
     fn check_field_works() {
-        assert_eq!(
-            check_field(String::from("byr"), String::from("1900")),
-            false
-        );
-        assert_eq!(check_field(String::from("byr"), String::from("1930")), true);
-        assert_eq!(
-            check_field(String::from("byr"), String::from("2020")),
-            false
-        );
+        assert_eq!(check_field("byr", String::from("1900")), false);
+        assert_eq!(check_field("byr", String::from("1930")), true);
+        assert_eq!(check_field("byr", String::from("2020")), false);
 
-        assert_eq!(
-            check_field(String::from("hcl"), String::from("#afd123")),
-            true
-        );
+        assert_eq!(check_field("hcl", String::from("#afd123")), true);
     }
 
     #[test]
