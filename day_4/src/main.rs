@@ -56,24 +56,15 @@ fn check_field(field: &str, value: String) -> bool {
         }
         "hcl" => {
             let regex = Regex::new(r"^#([0-9a-f]){6}$").unwrap();
-            if regex.is_match(&*value) {
-                return true;
-            }
-            false
+            regex.is_match(&*value)
         }
         "ecl" => {
             let regex = Regex::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
-            if regex.is_match(&*value) {
-                return true;
-            }
-            false
+            regex.is_match(&*value)
         }
         "pid" => {
             let regex = Regex::new(r"^\d{9}$").unwrap();
-            if regex.is_match(&*value) {
-                return true;
-            }
-            false
+            regex.is_match(&*value)
         }
         _ => false,
     };
