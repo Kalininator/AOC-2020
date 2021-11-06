@@ -16,11 +16,11 @@ fn file_lines_to_passports(file_lines: Vec<String>) -> Vec<String> {
     }
     result.push(buffer.join(" "));
 
-    return result;
+    result
 }
 
-fn check_field(field: &str, value: String) -> bool {
-    return match field {
+fn check_field(field: &str, value: &str) -> bool {
+    match field {
         "cid" => true,
         "byr" => {
             let val = value.parse::<i32>().expect("failed parse number");
@@ -67,7 +67,7 @@ fn check_field(field: &str, value: String) -> bool {
             regex.is_match(&*value)
         }
         _ => false,
-    };
+    }
 }
 
 fn get_passport_field_keys(line: &String) -> Vec<String> {
@@ -91,6 +91,11 @@ fn is_passport_valid_basic(passport: &String) -> bool {
     return true;
 }
 
+fn check_passport(passport: &str) -> bool {
+    let split = passport.split(":").collect::<Vec<&str>>();
+    check_field(split[0], split[1])
+}
+
 fn is_passport_valid_advanced(passport: &String) -> bool {
     if !is_passport_valid_basic(passport) {
         return false;
@@ -98,12 +103,7 @@ fn is_passport_valid_advanced(passport: &String) -> bool {
 
     let is_valid = passport
         .split(" ")
-        .map(|f| {
-            let split: Vec<&str> = f.split(":").collect::<Vec<&str>>();
-            let res = check_field(split[0], split[1].to_string());
-            // println!("{}:{} - {}", split[0], split[1], res);
-            return res;
-        })
+        .map(check_passport)
         .collect::<Vec<bool>>();
 
     return !is_valid.iter().any(|f| f == &false);
@@ -139,11 +139,11 @@ mod tests {
 
     #[test]
     fn check_field_works() {
-        assert_eq!(check_field("byr", String::from("1900")), false);
-        assert_eq!(check_field("byr", String::from("1930")), true);
-        assert_eq!(check_field("byr", String::from("2020")), false);
+        assert_eq!(check_field("byr", "1900"), false);
+        assert_eq!(check_field("byr", "1930"), true);
+        assert_eq!(check_field("byr", "2020"), false);
 
-        assert_eq!(check_field("hcl", String::from("#afd123")), true);
+        assert_eq!(check_field("hcl", "#afd123"), true);
     }
 
     #[test]
